@@ -114,6 +114,7 @@ async function uploadToImgBB(file) {
     body: form,
   });
   const json = await res.json();
+  console.log("[Profile] ImgBB response:", json);
   if (!res.ok) {
     const msg = json.error?.message || json.error || res.statusText || "Upload failed. Please try again.";
     throw new Error(msg);
@@ -131,7 +132,15 @@ function init() {
   const photoInput = document.getElementById("photoInput");
   const profilePhoto = document.getElementById("profilePhoto");
 
-  if (!profileForm || !profilePhoto) return;
+  if (!profileForm || !profilePhoto) {
+    console.warn("[Profile] init: missing profileForm or profilePhoto", { profileForm: !!profileForm, profilePhoto: !!profilePhoto });
+    return;
+  }
+
+  uploadPhotoBtn?.addEventListener("click", () => {
+    console.log("[Profile] Upload button clicked");
+    photoInput?.click();
+  });
 
   onAuthStateChanged(auth, (user) => {
     if (!user) {
@@ -141,14 +150,16 @@ function init() {
     loadProfile(user.uid);
   });
 
-  uploadPhotoBtn?.addEventListener("click", () => photoInput?.click());
-
   photoInput?.addEventListener("change", async (e) => {
     const file = e.target.files?.[0];
+    console.log("[Profile] File selected:", file ? { name: file.name, size: file.size, type: file.type } : "none");
     if (!file) return;
     clearError();
     const uid = auth.currentUser?.uid;
-    if (!uid) return;
+    if (!uid) {
+      console.warn("[Profile] No authenticated user");
+      return;
+    }
 
     if (file.size > MAX_SIZE_BYTES) {
       showError("Image must be under 2MB. Try a smaller or more compressed image.");
@@ -164,13 +175,17 @@ function init() {
       if (!IMGBB_API_KEY || !String(IMGBB_API_KEY).trim()) {
         throw new Error("Upload failed. Please try again.");
       }
+      console.log("[Profile] Uploading to ImgBB");
       const photoURL = await uploadToImgBB(file);
+      console.log("[Profile] ImgBB response OK, URL:", photoURL);
+      console.log("[Profile] Saving URL to Firestore");
       await updateDoc(doc(db, "users", uid), {
         photoURL,
         updatedAt: serverTimestamp(),
       });
       URL.revokeObjectURL(previewUrl);
       renderAvatar(profilePhoto, photoURL, document.getElementById("profileDisplayName")?.value, "lg");
+      console.log("[Profile] Upload complete, avatar refreshed");
     } catch (err) {
       console.error("[Profile] Upload error", err);
       showError(err.message || "Upload failed. Please try again.");
