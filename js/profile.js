@@ -126,21 +126,71 @@ async function uploadToImgBB(file) {
 }
 
 function init() {
+  const uploadBtn = document.getElementById("uploadPhotoBtn");
+  const photoInput = document.getElementById("photoInput");
   const profileForm = document.getElementById("profileForm");
   const saveProfileBtn = document.getElementById("saveProfileBtn");
-  const uploadPhotoBtn = document.getElementById("uploadPhotoBtn");
-  const photoInput = document.getElementById("photoInput");
   const profilePhoto = document.getElementById("profilePhoto");
+
+  if (uploadBtn && photoInput) {
+    uploadBtn.addEventListener("click", () => {
+      console.log("Upload button clicked");
+      photoInput.click();
+    });
+  } else {
+    console.warn("[Profile] Upload button or file input missing", { uploadBtn: !!uploadBtn, photoInput: !!photoInput });
+  }
 
   if (!profileForm || !profilePhoto) {
     console.warn("[Profile] init: missing profileForm or profilePhoto", { profileForm: !!profileForm, profilePhoto: !!profilePhoto });
     return;
   }
 
-  uploadPhotoBtn?.addEventListener("click", () => {
-    console.log("[Profile] Upload button clicked");
-    photoInput?.click();
-  });
+  if (photoInput) {
+    photoInput.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      console.log("File selected:", file);
+      if (!file) return;
+      clearError();
+      const uid = auth.currentUser?.uid;
+      if (!uid) {
+        console.warn("[Profile] No authenticated user");
+        return;
+      }
+      if (file.size > MAX_SIZE_BYTES) {
+        showError("Image must be under 2MB. Try a smaller or more compressed image.");
+        e.target.value = "";
+        return;
+      }
+      const previewUrl = URL.createObjectURL(file);
+      showPreview(profilePhoto, previewUrl);
+      if (saveProfileBtn) saveProfileBtn.disabled = true;
+      try {
+        if (!IMGBB_API_KEY || !String(IMGBB_API_KEY).trim()) {
+          throw new Error("Upload failed. Please try again.");
+        }
+        console.log("[Profile] Uploading to ImgBB");
+        const photoURL = await uploadToImgBB(file);
+        console.log("[Profile] ImgBB response OK, URL:", photoURL);
+        console.log("[Profile] Saving URL to Firestore");
+        await updateDoc(doc(db, "users", uid), {
+          photoURL,
+          updatedAt: serverTimestamp(),
+        });
+        URL.revokeObjectURL(previewUrl);
+        renderAvatar(profilePhoto, photoURL, document.getElementById("profileDisplayName")?.value, "lg");
+        console.log("[Profile] Upload complete, avatar refreshed");
+      } catch (err) {
+        console.error("[Profile] Upload error", err);
+        showError(err.message || "Upload failed. Please try again.");
+        URL.revokeObjectURL(previewUrl);
+        renderAvatar(profilePhoto, null, document.getElementById("profileDisplayName")?.value, "lg");
+      } finally {
+        if (saveProfileBtn) saveProfileBtn.disabled = false;
+        e.target.value = "";
+      }
+    });
+  }
 
   onAuthStateChanged(auth, (user) => {
     if (!user) {
@@ -148,53 +198,6 @@ function init() {
       return;
     }
     loadProfile(user.uid);
-  });
-
-  photoInput?.addEventListener("change", async (e) => {
-    const file = e.target.files?.[0];
-    console.log("[Profile] File selected:", file ? { name: file.name, size: file.size, type: file.type } : "none");
-    if (!file) return;
-    clearError();
-    const uid = auth.currentUser?.uid;
-    if (!uid) {
-      console.warn("[Profile] No authenticated user");
-      return;
-    }
-
-    if (file.size > MAX_SIZE_BYTES) {
-      showError("Image must be under 2MB. Try a smaller or more compressed image.");
-      e.target.value = "";
-      return;
-    }
-
-    const previewUrl = URL.createObjectURL(file);
-    showPreview(profilePhoto, previewUrl);
-
-    saveProfileBtn.disabled = true;
-    try {
-      if (!IMGBB_API_KEY || !String(IMGBB_API_KEY).trim()) {
-        throw new Error("Upload failed. Please try again.");
-      }
-      console.log("[Profile] Uploading to ImgBB");
-      const photoURL = await uploadToImgBB(file);
-      console.log("[Profile] ImgBB response OK, URL:", photoURL);
-      console.log("[Profile] Saving URL to Firestore");
-      await updateDoc(doc(db, "users", uid), {
-        photoURL,
-        updatedAt: serverTimestamp(),
-      });
-      URL.revokeObjectURL(previewUrl);
-      renderAvatar(profilePhoto, photoURL, document.getElementById("profileDisplayName")?.value, "lg");
-      console.log("[Profile] Upload complete, avatar refreshed");
-    } catch (err) {
-      console.error("[Profile] Upload error", err);
-      showError(err.message || "Upload failed. Please try again.");
-      URL.revokeObjectURL(previewUrl);
-      renderAvatar(profilePhoto, null, document.getElementById("profileDisplayName")?.value, "lg");
-    } finally {
-      saveProfileBtn.disabled = false;
-      e.target.value = "";
-    }
   });
 
   profileForm.addEventListener("submit", async (e) => {
@@ -206,7 +209,7 @@ function init() {
     const bio = (document.getElementById("profileBio")?.value || "").trim();
     const location = (document.getElementById("profileLocation")?.value || "").trim();
     const website = (document.getElementById("profileWebsite")?.value || "").trim();
-    saveProfileBtn.disabled = true;
+    if (saveProfileBtn) saveProfileBtn.disabled = true;
     try {
       await updateDoc(doc(db, "users", uid), {
         displayName: displayName || null,
@@ -222,7 +225,7 @@ function init() {
       console.error("[Profile] Save error", err);
       showError(err.message || "Could not save profile.");
     } finally {
-      saveProfileBtn.disabled = false;
+      if (saveProfileBtn) saveProfileBtn.disabled = false;
     }
   });
 
