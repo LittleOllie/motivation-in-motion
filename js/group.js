@@ -190,8 +190,26 @@ function init() {
     }
   });
 
+  document.getElementById("updateGroupDescriptionBtn")?.addEventListener("click", async () => {
+    if (!currentGroupId || !isOwner && !isAdmin) return;
+    const description = window.prompt("Group description (optional)", currentGroup?.description || "");
+    if (description == null) return;
+    try {
+      const value = description.trim();
+      await updateDoc(doc(db, "groups", currentGroupId), { description: value || null });
+      currentGroup = { ...currentGroup, description: value || null };
+      const descEl = document.getElementById("groupDescription");
+      if (descEl) {
+        descEl.textContent = value || "";
+        descEl.style.display = value ? "" : "none";
+      }
+    } catch (err) {
+      showError(err.message || "Could not update description.");
+    }
+  });
+
   document.getElementById("regenerateCodeSettingBtn")?.addEventListener("click", async () => {
-    if (!currentGroupId || !currentUser || !isOwner) return;
+    if (!currentGroupId || !currentUser || (!isOwner && !isAdmin)) return;
     const groupRef = doc(db, "groups", currentGroupId);
     const newCode = generateJoinCode();
     const newExpires = joinCodeExpiresAt();
@@ -276,6 +294,11 @@ async function loadGroup() {
 
   document.getElementById("groupTitle").textContent = currentGroup.name || "Group";
   document.getElementById("groupName").textContent = currentGroup.name || "Group";
+  const descEl = document.getElementById("groupDescription");
+  if (descEl) {
+    descEl.textContent = currentGroup.description || "";
+    descEl.style.display = currentGroup.description ? "" : "none";
+  }
   document.getElementById("groupJoinCode").textContent = currentGroup.joinCode || "—";
   document.getElementById("memberCount").textContent = "";
 

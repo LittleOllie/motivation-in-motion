@@ -16,7 +16,11 @@ service cloud.firestore {
     match /groups/{groupId} {
       allow create: if request.auth != null;
       allow read: if request.auth != null;
-      allow update, delete: if request.auth != null && resource.data.owner == request.auth.uid;
+      allow update: if request.auth != null && (
+        resource.data.owner == request.auth.uid
+        || (exists(/databases/$(database)/documents/groups/$(groupId)/members/$(request.auth.uid)) && get(/databases/$(database)/documents/groups/$(groupId)/members/$(request.auth.uid)).data.role == 'admin')
+      );
+      allow delete: if request.auth != null && resource.data.owner == request.auth.uid;
       match /members/{memberId} {
         allow read: if request.auth != null;
         allow create: if request.auth != null && memberId == request.auth.uid;

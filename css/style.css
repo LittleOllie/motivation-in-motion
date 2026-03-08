@@ -860,6 +860,11 @@ a.button-secondary {
   flex: 1;
   min-width: 0;
 }
+.group-description {
+  margin: 4px 0 8px;
+  font-size: 14px;
+  line-height: 1.4;
+}
 .group-settings-actions {
   display: flex;
   flex-direction: column;
