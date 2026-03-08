@@ -393,8 +393,13 @@ async function loadGroup() {
     const name = m.displayName || m.name || "Member";
     const li = document.createElement("li");
     li.className = "group-member-item";
+    const avatarLink = document.createElement("a");
+    avatarLink.href = "member.html?uid=" + encodeURIComponent(m.id) + "&groupId=" + encodeURIComponent(currentGroupId);
+    avatarLink.className = "group-member-avatar-link";
+    avatarLink.setAttribute("aria-label", "View " + name + " profile");
     const avatar = document.createElement("div");
     renderAvatar(avatar, m.photoURL, name, "sm");
+    avatarLink.appendChild(avatar);
     const nameSpan = document.createElement("span");
     nameSpan.className = "group-member-name";
     const memberLink = document.createElement("a");
@@ -436,7 +441,7 @@ async function loadGroup() {
       actionsSpan.appendChild(removeBtn);
     }
     nameSpan.appendChild(actionsSpan);
-    li.appendChild(avatar);
+    li.appendChild(avatarLink);
     li.appendChild(nameSpan);
     listEl.appendChild(li);
   });
@@ -461,13 +466,21 @@ async function loadGroup() {
     const rank = document.createElement("span");
     rank.className = "leaderboard-rank";
     rank.textContent = String(i + 1);
+    const profileUrl = "member.html?uid=" + encodeURIComponent(entry.id) + "&groupId=" + encodeURIComponent(currentGroupId);
+    const avatarLink = document.createElement("a");
+    avatarLink.href = profileUrl;
+    avatarLink.className = "group-member-avatar-link";
+    avatarLink.setAttribute("aria-label", "View " + entry.name + " profile");
     const avatar = document.createElement("div");
     renderAvatar(avatar, photoURL, entry.name, "sm");
-    const text = document.createElement("span");
-    text.textContent = ` ${entry.name} — ${entry.count} check-in${entry.count !== 1 ? "s" : ""}`;
+    avatarLink.appendChild(avatar);
+    const nameLink = document.createElement("a");
+    nameLink.href = profileUrl;
+    nameLink.className = "group-member-link";
+    nameLink.textContent = " " + entry.name + " — " + entry.count + " check-in" + (entry.count !== 1 ? "s" : "");
     li.appendChild(rank);
-    li.appendChild(avatar);
-    li.appendChild(text);
+    li.appendChild(avatarLink);
+    li.appendChild(nameLink);
     leaderEl.appendChild(li);
   });
 
@@ -499,8 +512,17 @@ function renderActivityItem(a, activityEl) {
 
   const nameSpan = document.createElement("span");
   nameSpan.className = "group-activity-user";
-  nameSpan.style.color = color;
-  nameSpan.textContent = userName + " ";
+  if (uid && currentGroupId) {
+    const nameLink = document.createElement("a");
+    nameLink.href = "member.html?uid=" + encodeURIComponent(uid) + "&groupId=" + encodeURIComponent(currentGroupId);
+    nameLink.className = "group-activity-user-link";
+    nameLink.style.color = color;
+    nameLink.textContent = userName + " ";
+    nameSpan.appendChild(nameLink);
+  } else {
+    nameSpan.style.color = color;
+    nameSpan.textContent = userName + " ";
+  }
 
   const msgSpan = document.createElement("span");
   msgSpan.className = "group-activity-message";
@@ -511,16 +533,12 @@ function renderActivityItem(a, activityEl) {
   const likeBtn = document.createElement("button");
   likeBtn.type = "button";
   likeBtn.className = "button-ghost button-small group-activity-like-btn";
-  likeBtn.textContent = "👍 Like";
+  likeBtn.textContent = likeCount > 0 ? "👍 " + likeCount + " like" + (likeCount !== 1 ? "s" : "") : "👍 Like";
   likeBtn.dataset.eventId = a.id;
   likeBtn.dataset.createdBy = uid || "";
   likeBtn.setAttribute("aria-label", isLiked ? "Unlike" : "Like");
   if (isLiked) likeBtn.classList.add("group-activity-like-btn--liked");
-  const countSpan = document.createElement("span");
-  countSpan.className = "group-activity-like-count";
-  countSpan.textContent = likeCount > 0 ? " " + likeCount : "";
   likeWrap.appendChild(likeBtn);
-  likeWrap.appendChild(countSpan);
 
   li.appendChild(nameSpan);
   li.appendChild(msgSpan);
@@ -566,11 +584,20 @@ async function loadActivity(append) {
 }
 
 function initActivityLikeDelegation() {
-  document.getElementById("activityList")?.addEventListener("click", async (e) => {
+  const activityList = document.getElementById("activityList");
+  if (!activityList) return;
+  activityList.addEventListener("click", async (e) => {
     const btn = e.target.closest(".group-activity-like-btn");
-    if (!btn || !currentUser || !currentGroupId) return;
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (!currentUser || !currentGroupId) {
+      showError("You must be signed in to like.");
+      return;
+    }
     const eventId = btn.dataset.eventId;
-    const createdBy = btn.dataset.createdBy || "";
+    const createdBy = (btn.dataset.createdBy || "").trim();
+    if (!eventId) return;
     const eventRef = doc(db, "groups", currentGroupId, "activity", eventId);
     try {
       const snap = await getDoc(eventRef);
@@ -594,8 +621,7 @@ function initActivityLikeDelegation() {
           });
         }
       }
-      const countEl = btn.parentElement?.querySelector(".group-activity-like-count");
-      if (countEl) countEl.textContent = likes.length > 0 ? " " + likes.length : "";
+      btn.textContent = likes.length > 0 ? "👍 " + likes.length + " like" + (likes.length !== 1 ? "s" : "") : "👍 Like";
       btn.classList.toggle("group-activity-like-btn--liked", likes.includes(currentUser.uid));
     } catch (err) {
       console.error("[Group] like error", err);

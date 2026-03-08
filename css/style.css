@@ -1342,6 +1342,26 @@ body.dark-mode .identity-popup {
   text-decoration: underline;
 }
 
+.group-member-avatar-link {
+  display: flex;
+  flex-shrink: 0;
+  text-decoration: none;
+  border-radius: 50%;
+}
+
+.group-member-avatar-link:hover {
+  opacity: 0.9;
+}
+
+.group-activity-user-link {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.group-activity-user-link:hover {
+  text-decoration: underline;
+}
+
 /* Member profile page */
 .member-profile-card {
   text-align: center;
