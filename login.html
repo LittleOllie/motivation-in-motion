@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Log In — Motivation in Motion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="auth-body">
+
+  <main class="auth-container">
+
+    <div class="card auth-card">
+      <h1 class="app-title">Motivation in Motion</h1>
+      <p class="auth-subtitle">Build momentum. Track habits. Stay accountable.</p>
+
+      <div id="authError" class="auth-error" role="alert" aria-live="polite" hidden></div>
+
+      <!-- Log In -->
+      <section class="auth-section" aria-labelledby="login-heading">
+        <h2 id="login-heading" class="auth-section-title">Log In</h2>
+        <p class="auth-section-desc">Already have an account? Sign in below.</p>
+        <form id="loginForm" class="auth-form">
+          <label for="loginEmail">Email</label>
+          <input id="loginEmail" type="email" placeholder="you@example.com" class="input-field" required autocomplete="email">
+          <label for="loginPassword">Password</label>
+          <input id="loginPassword" type="password" placeholder="••••••••" class="input-field" required autocomplete="current-password">
+          <button type="submit" id="loginBtn" class="button-primary full-width">Log In</button>
+        </form>
+      </section>
+
+      <div class="auth-divider" aria-hidden="true">or</div>
+
+      <!-- Create Account (dropdown) -->
+      <details class="auth-dropdown" id="createAccountDropdown">
+        <summary class="auth-dropdown-summary">
+          <span>Create account</span>
+          <span class="auth-dropdown-chevron" aria-hidden="true"></span>
+        </summary>
+        <section class="auth-section auth-dropdown-inner" aria-labelledby="signup-heading">
+          <h2 id="signup-heading" class="auth-section-title">Create Account</h2>
+          <p class="auth-section-desc">New here? Create an account to get started.</p>
+          <form id="signupForm" class="auth-form">
+            <label for="signupName">Display name (optional)</label>
+            <input id="signupName" type="text" placeholder="How we'll call you" class="input-field" autocomplete="name">
+            <label for="signupEmail">Email</label>
+            <input id="signupEmail" type="email" placeholder="you@example.com" class="input-field" required autocomplete="email">
+            <label for="signupPassword">Password</label>
+            <input id="signupPassword" type="password" placeholder="At least 6 characters" class="input-field" required autocomplete="new-password" minlength="6">
+            <button type="submit" id="signupBtn" class="button-secondary full-width">Create Account</button>
+          </form>
+        </section>
+      </details>
+
+      <p class="auth-hint">You’ll stay logged in on this device until you log out.</p>
+    </div>
+
+  </main>
+
+  <script type="module" src="js/auth.js"></script>
+</body>
+</html>
