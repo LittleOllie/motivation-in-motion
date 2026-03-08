@@ -1,78 +1,67 @@
 /**
- * Main app logic for Motivation in Motion.
- * Handles auth state, form submissions, and page-specific behavior.
+ * Dashboard (index) for Motivation in Motion.
+ * Protects route: redirect to login if not authenticated; shows Welcome {username}.
  */
+import { signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { auth } from "./firebase-init.js";
+import { renderAvatar } from "./utils.js";
+import { getAuthState, subscribeAuth } from "./auth-state.js";
 
-(function () {
-  if (typeof auth === 'undefined') return;
+function initDashboard() {
+  const welcomeEl = document.getElementById("welcomeMessage");
+  const userEmailEl = document.getElementById("userEmail");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const streakEl = document.getElementById("streakCount");
+  const shieldEl = document.getElementById("shieldCount");
+  const avatarEl = document.getElementById("dashboardAvatar");
 
-  auth.onAuthStateChanged(function (user) {
-    if (user) {
-      document.body.classList.add('logged-in');
-      const profileEmail = document.getElementById('profile-email');
-      if (profileEmail) profileEmail.textContent = user.email || '—';
-      const avatar = document.getElementById('profile-avatar');
-      if (avatar && user.displayName) avatar.textContent = user.displayName.charAt(0).toUpperCase();
-    } else {
-      document.body.classList.remove('logged-in');
+  if (streakEl) streakEl.textContent = "—";
+  if (shieldEl) shieldEl.textContent = "—";
+  if (avatarEl) avatarEl.textContent = "…";
+
+  subscribeAuth(async (user) => {
+    if (!user) {
+      window.location.href = "login.html";
+      return;
     }
+
+    let displayName = user.displayName || user.email || "User";
+    if (userEmailEl) userEmailEl.textContent = user.email || "";
+
+    try {
+      const profile = await getAuthState().getUserProfile();
+      if (profile) {
+        displayName = profile.displayName || profile.name || profile.email || displayName;
+        const streak = Number(profile.currentStreak) || 0;
+        const shields = Number(profile.streakShields) || 0;
+        if (streakEl) streakEl.textContent = String(streak);
+        if (shieldEl) shieldEl.textContent = String(shields);
+        if (avatarEl) renderAvatar(avatarEl, profile.photoURL || null, displayName, "lg");
+      } else {
+        if (streakEl) streakEl.textContent = "0";
+        if (shieldEl) shieldEl.textContent = "0";
+        if (avatarEl) renderAvatar(avatarEl, null, displayName, "lg");
+      }
+    } catch (err) {
+      console.error("Error loading user data:", err);
+      if (streakEl) streakEl.textContent = "0";
+      if (shieldEl) shieldEl.textContent = "0";
+      if (avatarEl) renderAvatar(avatarEl, null, displayName, "lg");
+    }
+
+    if (welcomeEl) welcomeEl.textContent = `Welcome ${displayName}`;
   });
 
-  // Logout link
-  const logoutLink = document.getElementById('logout-link');
-  if (logoutLink) {
-    logoutLink.addEventListener('click', function (e) {
-      e.preventDefault();
-      auth.logout();
-      window.location.href = 'index.html';
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async () => {
+      await signOut(auth);
+      window.location.href = "login.html";
     });
   }
+}
 
-  // Login form
-  const loginForm = document.getElementById('login-form');
-  if (loginForm) {
-    loginForm.addEventListener('submit', function (e) {
-      e.preventDefault();
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      auth.login(email, password)
-        .then(function () {
-          window.location.href = 'index.html';
-        })
-        .catch(function (err) {
-          alert(err.message || 'Login failed');
-        });
-    });
-  }
-
-  // Check-in form
-  const checkinForm = document.getElementById('checkin-form');
-  if (checkinForm) {
-    checkinForm.addEventListener('submit', function (e) {
-      e.preventDefault();
-      const note = document.getElementById('checkin-note');
-      if (note && note.value.trim()) {
-        // TODO: save to Firebase
-        console.log('Check-in:', note.value.trim());
-        note.value = '';
-      }
-    });
-  }
-
-  // Settings form
-  const settingsForm = document.getElementById('settings-form');
-  if (settingsForm) {
-    const user = auth.getCurrentUser();
-    if (user) {
-      const displayName = document.getElementById('display-name');
-      const settingsEmail = document.getElementById('settings-email');
-      if (displayName) displayName.value = user.displayName || '';
-      if (settingsEmail) settingsEmail.value = user.email || '';
-    }
-    settingsForm.addEventListener('submit', function (e) {
-      e.preventDefault();
-      // TODO: update profile in Firebase
-      console.log('Settings saved');
-    });
-  }
-})();
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initDashboard);
+} else {
+  initDashboard();
+}

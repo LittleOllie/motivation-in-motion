@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Groups — Motivation in Motion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="body-with-bottom-nav">
+  <main class="app-shell">
+    <header class="top-header">
+      <h1>Groups</h1>
+      <a href="index.html" class="button-secondary">Back</a>
+    </header>
+
+    <div id="groupsError" class="groups-error" role="alert" aria-live="polite" hidden></div>
+
+    <section class="card">
+      <h2 class="card-label">Create a group</h2>
+      <button type="button" id="createGroupBtn" class="button-primary full-width">Create group</button>
+    </section>
+
+    <section class="card">
+      <h2 class="card-label">Join with code</h2>
+      <form id="joinGroupForm" class="groups-join-form">
+        <input type="text" id="joinCodeInput" class="input-field" placeholder="Enter 6-character code" maxlength="6" autocomplete="off" />
+        <button type="submit" id="joinGroupBtn" class="button-secondary full-width">Join group</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2 class="card-label">My groups</h2>
+      <div id="groupsList" class="groups-list"></div>
+    </section>
+
+    <div id="groupModal" class="modal" hidden>
+      <div class="modal-backdrop" data-close></div>
+      <div class="modal-content">
+        <h3 id="modalGroupName" class="modal-title"></h3>
+        <p class="groups-code-line">Code: <strong id="modalJoinCode"></strong> <button type="button" id="regenerateCodeBtn" class="button-secondary button-small">Regenerate</button></p>
+        <p class="groups-expires" id="modalExpires"></p>
+        <div id="modalQrContainer" class="groups-qr-container"></div>
+        <p class="muted-text small-text">Scan to join: <span id="modalJoinUrl" class="groups-join-url"></span></p>
+        <button type="button" id="modalCloseBtn" class="button-secondary full-width">Close</button>
+      </div>
+    </div>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Main">
+    <a href="index.html" class="bottom-nav-item" data-page="home"><span>🏠</span><span>Home</span></a>
+    <a href="index.html#today" class="bottom-nav-item" data-page="today"><span>✅</span><span>Today</span></a>
+    <a href="habits.html" class="bottom-nav-item" data-page="habits"><span>🧠</span><span>Habits</span></a>
+    <a href="groups.html" class="bottom-nav-item bottom-nav-item--active" data-page="groups"><span>👥</span><span>Groups</span></a>
+    <a href="profile.html" class="bottom-nav-item" data-page="profile"><span>👤</span><span>Profile</span></a>
+  </nav>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script type="module" src="js/groups.js"></script>
+</body>
+</html>

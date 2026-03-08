@@ -1,17 +1,9 @@
-/**
- * Firebase configuration for Motivation in Motion.
- * Replace with your project's config from Firebase Console.
- */
-const firebaseConfig = {
-  apiKey: 'YOUR_API_KEY',
-  authDomain: 'YOUR_PROJECT_ID.firebaseapp.com',
-  projectId: 'YOUR_PROJECT_ID',
-  storageBucket: 'YOUR_PROJECT_ID.appspot.com',
-  messagingSenderId: 'YOUR_SENDER_ID',
-  appId: 'YOUR_APP_ID'
+export const firebaseConfig = {
+  apiKey: "AIzaSyAQqSZuUfJO-VC9Cblnc00-25vleR_jKpI",
+  authDomain: "motivation-in-motion.firebaseapp.com",
+  projectId: "motivation-in-motion",
+  storageBucket: "motivation-in-motion.firebasestorage.app",
+  messagingSenderId: "913656944921",
+  appId: "1:913656944921:web:a202a07908e4c215d4cd88",
+  measurementId: "G-QWYR19YHLY"
 };
-
-// Initialize Firebase (only if Firebase SDK is loaded)
-if (typeof firebase !== 'undefined') {
-  firebase.initializeApp(firebaseConfig);
-}

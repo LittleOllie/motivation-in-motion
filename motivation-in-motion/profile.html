@@ -1,37 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Profile — Motivation in Motion</title>
-  <link rel="stylesheet" href="css/style.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
-  <header>
-    <nav>
-      <a href="index.html" class="logo">Motivation in Motion</a>
-      <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="crew.html">Crew</a></li>
-        <li><a href="checkin.html">Check-in</a></li>
-        <li><a href="profile.html">Profile</a></li>
-        <li><a href="settings.html">Settings</a></li>
-        <li><a href="#" id="logout-link">Log out</a></li>
-      </ul>
-    </nav>
-  </header>
-  <main>
-    <section class="profile">
-      <h1>Your Profile</h1>
-      <div class="profile-card">
-        <div class="profile-avatar" id="profile-avatar">?</div>
-        <p class="profile-email" id="profile-email">—</p>
-        <a href="settings.html" class="btn-secondary">Edit profile</a>
+
+<body class="body-with-bottom-nav">
+
+  <main class="app-shell">
+
+    <header class="top-header">
+      <h1>Profile</h1>
+      <a href="index.html" class="button-secondary">Back</a>
+    </header>
+
+    <div id="profileError" class="groups-error" hidden></div>
+
+    <section class="card profile-card">
+
+      <!-- PROFILE PHOTO -->
+      <div class="profile-photo-wrap">
+
+        <img id="profilePreview" class="avatar avatar--lg" />
+
+        <input
+          type="file"
+          id="photoInput"
+          accept="image/jpeg,image/png,image/webp"
+          class="visually-hidden"
+        />
+
+        <button
+          type="button"
+          id="uploadPhotoBtn"
+          class="button-secondary"
+        >
+          Upload Photo
+        </button>
+
       </div>
+
+      <!-- PROFILE FORM -->
+      <form id="profileForm" class="profile-form">
+
+        <label>Name</label>
+        <input
+          type="text"
+          id="profileDisplayName"
+          class="input-field"
+          placeholder="Your name"
+        />
+
+        <label>Bio</label>
+        <textarea
+          id="profileBio"
+          class="input-field profile-textarea"
+          placeholder="A short bio..."
+        ></textarea>
+
+        <label>Location</label>
+        <input
+          type="text"
+          id="profileLocation"
+          class="input-field"
+          placeholder="City or region"
+        />
+
+        <label>Website</label>
+        <input
+          type="url"
+          id="profileWebsite"
+          class="input-field"
+          placeholder="https://..."
+        />
+
+        <button
+          type="submit"
+          class="button-primary full-width"
+        >
+          Save Profile
+        </button>
+
+      </form>
+
     </section>
+
   </main>
-  <script src="js/firebase-config.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/app.js"></script>
+
+
+  <!-- BOTTOM NAV -->
+
+  <nav class="bottom-nav">
+
+    <a href="index.html" class="bottom-nav-item">
+      <span>🏠</span>
+      <span>Home</span>
+    </a>
+
+    <a href="index.html#today" class="bottom-nav-item">
+      <span>✅</span>
+      <span>Today</span>
+    </a>
+
+    <a href="habits.html" class="bottom-nav-item">
+      <span>🧠</span>
+      <span>Habits</span>
+    </a>
+
+    <a href="groups.html" class="bottom-nav-item">
+      <span>👥</span>
+      <span>Groups</span>
+    </a>
+
+    <a href="profile.html" class="bottom-nav-item bottom-nav-item--active">
+      <span>👤</span>
+      <span>Profile</span>
+    </a>
+
+  </nav>
+
+  <script type="module" src="js/profile.js"></script>
+
 </body>
 </html>

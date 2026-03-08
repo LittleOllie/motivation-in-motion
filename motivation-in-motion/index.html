@@ -1,37 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Motivation in Motion</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
-  <header>
-    <nav>
-      <a href="index.html" class="logo">Motivation in Motion</a>
-      <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="about.html">About</a></li>
-        <li><a href="crew.html">Crew</a></li>
-        <li><a href="checkin.html">Check-in</a></li>
-        <li><a href="profile.html">Profile</a></li>
-        <li><a href="login.html">Login</a></li>
-      </ul>
-    </nav>
-  </header>
-  <main>
-    <section class="hero">
-      <h1>Stay motivated. Keep moving.</h1>
-      <p>Track your progress, connect with your crew, and build lasting habits.</p>
-      <a href="login.html" class="cta">Get Started</a>
+<body class="body-with-bottom-nav">
+  <main class="app-shell">
+    <header class="top-header">
+      <div id="dashboardAvatar" class="avatar avatar--lg" aria-hidden="true"></div>
+      <div>
+        <p class="eyebrow">Motivation in Motion</p>
+        <h1 id="welcomeMessage">Welcome 👋</h1>
+        <p class="muted-text" id="userEmail"></p>
+      </div>
+      <button id="logoutBtn" class="button-secondary">Logout</button>
+    </header>
+
+    <section class="card">
+      <p class="card-label">Current Streak</p>
+      <h2 class="streak-text">🔥 <span id="streakCount">0</span> Day Streak</h2>
+      <p class="streak-shields">🛡 Shields: <span id="shieldCount">0</span></p>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: 0%;"></div>
+      </div>
+      <p class="muted-text">Next badge: First Step</p>
+    </section>
+    <section class="card">
+      <h3 class="card-label">This Week</h3>
+      <div id="weeklyChain" class="weekly-chain" aria-label="Last 7 days habit chain"></div>
+    </section>
+    <section class="card" id="today">
+
+      <p class="card-label">Today</p>
+      
+      <div id="todayHabits"><p class="today-habits-empty">Loading…</p></div>
+      
+      <div id="progressText"></div>
+      
+      <div class="progress-bar">
+        <div id="progressFill" class="progress-fill"></div>
+      </div>
+      
+      </section>
+    <section class="card">
+
+      <p class="card-label">Habits</p>
+    
+      <a href="habits.html">
+        <button class="button-primary full-width">
+          Edit Your Habits
+        </button>
+      </a>
+    
     </section>
   </main>
-  <footer>
-    <p>&copy; Motivation in Motion</p>
-  </footer>
-  <script src="js/firebase-config.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/app.js"></script>
+
+  <nav class="bottom-nav" aria-label="Main">
+    <a href="index.html" class="bottom-nav-item" data-page="home"><span>🏠</span><span>Home</span></a>
+    <a href="index.html#today" class="bottom-nav-item" data-page="today"><span>✅</span><span>Today</span></a>
+    <a href="habits.html" class="bottom-nav-item" data-page="habits"><span>🧠</span><span>Habits</span></a>
+    <a href="groups.html" class="bottom-nav-item" data-page="groups"><span>👥</span><span>Groups</span></a>
+    <a href="profile.html" class="bottom-nav-item" data-page="profile"><span>👤</span><span>Profile</span></a>
+  </nav>
+  <script>
+    (function () {
+      var hash = window.location.hash || '';
+      var page = (hash === '#today') ? 'today' : 'home';
+      document.querySelectorAll('.bottom-nav-item').forEach(function (a) {
+        a.classList.toggle('bottom-nav-item--active', a.getAttribute('data-page') === page);
+      });
+    })();
+  </script>
+  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/checkin.js"></script>
 </body>
 </html>
