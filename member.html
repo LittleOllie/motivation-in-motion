@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Member — Motivation in Motion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="body-with-bottom-nav">
+  <script>try{document.body.classList.toggle("dark-mode",localStorage.getItem("motivation-in-motion-dark-mode")==="true");}catch(e){}</script>
+  <main class="app-shell">
+    <header class="top-header">
+      <h1 id="memberTitle">Member</h1>
+      <a id="backLink" href="groups.html" class="button-secondary">Back</a>
+    </header>
+
+    <div id="memberError" class="groups-error" role="alert" aria-live="polite" hidden></div>
+
+    <section class="card member-profile-card">
+      <div id="memberAvatar" class="avatar avatar--lg" aria-hidden="true"></div>
+      <h2 id="memberName" class="member-name"></h2>
+    </section>
+
+    <section class="card">
+      <h3 class="card-label">Stats</h3>
+      <ul id="memberStats" class="member-stats-list">
+        <li><span class="muted-text">Loading…</span></li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h3 class="card-label">Recent activity</h3>
+      <ul id="memberActivity" class="group-activity-list"></ul>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Main">
+    <a href="index.html" class="bottom-nav-item" data-page="home"><span>🏠</span><span>Dashboard</span></a>
+    <a href="habits.html" class="bottom-nav-item" data-page="habits"><span>🧠</span><span>Habits</span></a>
+    <a href="groups.html" class="bottom-nav-item bottom-nav-item--active" data-page="groups"><span>👥</span><span>Groups</span></a>
+    <a href="profile.html" class="bottom-nav-item" data-page="profile"><span>👤</span><span>Profile</span></a>
+    <a href="settings.html" class="bottom-nav-item" data-page="settings"><span>⚙️</span><span>Settings</span></a>
+  </nav>
+
+  <script type="module" src="js/member.js"></script>
+</body>
+</html>

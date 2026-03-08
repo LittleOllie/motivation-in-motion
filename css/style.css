@@ -1331,6 +1331,50 @@ body.dark-mode .identity-popup {
   min-width: 0;
 }
 
+.group-member-link {
+  color: var(--text-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.group-member-link:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+/* Member profile page */
+.member-profile-card {
+  text-align: center;
+  padding: var(--space-24);
+}
+
+.member-profile-card .avatar {
+  margin: 0 auto var(--space-16);
+}
+
+.member-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.member-stats-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.member-stats-list li {
+  padding: var(--space-8) 0;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 14px;
+}
+
+.member-stats-list li:last-child {
+  border-bottom: none;
+}
+
 .leaderboard-rank {
   font-weight: 700;
   color: var(--primary);

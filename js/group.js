@@ -397,10 +397,15 @@ async function loadGroup() {
     renderAvatar(avatar, m.photoURL, name, "sm");
     const nameSpan = document.createElement("span");
     nameSpan.className = "group-member-name";
+    const memberLink = document.createElement("a");
+    memberLink.href = "member.html?uid=" + encodeURIComponent(m.id) + "&groupId=" + encodeURIComponent(currentGroupId);
+    memberLink.className = "group-member-link";
+    memberLink.textContent = name;
     const badgeSpan = document.createElement("span");
     badgeSpan.className = getRoleBadgeClass(role);
     badgeSpan.textContent = getRoleLabel(role);
-    nameSpan.appendChild(document.createTextNode(name + " "));
+    nameSpan.appendChild(memberLink);
+    nameSpan.appendChild(document.createTextNode(" "));
     nameSpan.appendChild(badgeSpan);
     const actionsSpan = document.createElement("span");
     actionsSpan.className = "group-member-actions";
