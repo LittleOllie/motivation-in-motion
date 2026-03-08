@@ -18,7 +18,7 @@ import {
   arrayUnion,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { auth, db } from "./firebase-init.js";
-import { getJoinUrl, generateJoinCode, joinCodeExpiresAt, escapeHtml, escapeAttr } from "./utils.js";
+import { getJoinUrl, generateJoinCode, joinCodeExpiresAt, escapeHtml, escapeAttr, renderAvatar } from "./utils.js";
 
 let currentUser = null;
 
@@ -102,6 +102,7 @@ function init() {
         userName,
         message: "created the group",
         createdAt: serverTimestamp(),
+        createdBy: currentUser.uid,
       });
       const userRef = doc(db, "users", currentUser.uid);
       await updateDoc(userRef, { groupIds: arrayUnion(groupId) });
@@ -155,6 +156,7 @@ function init() {
         userName,
         message: "joined the group",
         createdAt: serverTimestamp(),
+        createdBy: currentUser.uid,
       });
       const userRef = doc(db, "users", currentUser.uid);
       await updateDoc(userRef, { groupIds: arrayUnion(groupId) });
@@ -187,20 +189,52 @@ function init() {
         const isOwner = g.owner === currentUser.uid;
         const memberSnap = await getDoc(doc(db, "groups", gid, "members", currentUser.uid));
         const role = memberSnap.exists() ? (memberSnap.data().role || (isOwner ? "owner" : "member")) : "member";
+        const membersSnap = await getDocs(collection(db, "groups", gid, "members"));
+        const memberCount = membersSnap.size;
         const roleBadge = isOwner ? ' <span class="role-badge role-badge--owner">OWNER</span>' : (role === "admin" ? ' <span class="role-badge role-badge--admin">ADMIN</span>' : "");
         const card = document.createElement("div");
-        card.className = "groups-list-item";
+        card.className = "groups-list-item group-card";
+        const avatarWrap = document.createElement("div");
+        avatarWrap.className = "group-card-avatar";
+        renderAvatar(avatarWrap, g.photoURL || null, g.name || "Group", "sm");
+        const info = document.createElement("div");
+        info.className = "group-card-info";
+        const nameLine = document.createElement("div");
+        nameLine.className = "group-card-name-line";
+        nameLine.innerHTML = `<a href="group.html?id=${escapeAttr(gid)}" class="groups-list-link">${escapeHtml(g.name || "Group")}</a>${roleBadge}`;
+        const countEl = document.createElement("span");
+        countEl.className = "muted-text small-text";
+        countEl.textContent = memberCount + " member" + (memberCount !== 1 ? "s" : "");
+        info.appendChild(nameLine);
+        info.appendChild(countEl);
         const expiresText = g.joinCodeExpires && g.joinCodeExpires.toMillis
           ? new Date(g.joinCodeExpires.toMillis()).toLocaleDateString()
           : "";
-        card.innerHTML =
-          `<a href="group.html?id=${escapeAttr(gid)}" class="groups-list-link">${escapeHtml(g.name || "Group")}</a>` +
-          roleBadge +
-          `<br><span class="muted-text small-text">Code: ${escapeHtml(g.joinCode || "—")} ${expiresText ? "· Expires " + expiresText : ""}</span>` +
-          `<div class="groups-list-actions">` +
-          `<a href="group.html?id=${escapeAttr(gid)}" class="button-secondary button-small">Open</a>` +
-          ((isOwner || role === "admin") ? ` <button type="button" class="button-secondary button-small groups-list-action" data-group-id="${escapeAttr(gid)}" data-group-name="${escapeAttr(g.name || "")}" data-join-code="${escapeAttr(g.joinCode || "")}" data-expires="${g.joinCodeExpires ? g.joinCodeExpires.toMillis() : ""}">Invite</button>` : "") +
-          `</div>`;
+        const codeEl = document.createElement("span");
+        codeEl.className = "muted-text small-text group-card-code";
+        codeEl.textContent = "Code: " + (g.joinCode || "—") + (expiresText ? " · Expires " + expiresText : "");
+        info.appendChild(codeEl);
+        const actions = document.createElement("div");
+        actions.className = "groups-list-actions";
+        const openLink = document.createElement("a");
+        openLink.href = "group.html?id=" + encodeURIComponent(gid);
+        openLink.className = "button-primary button-small";
+        openLink.textContent = "Open";
+        actions.appendChild(openLink);
+        if (isOwner || role === "admin") {
+          const inviteBtn = document.createElement("button");
+          inviteBtn.type = "button";
+          inviteBtn.className = "button-secondary button-small groups-list-action";
+          inviteBtn.dataset.groupId = gid;
+          inviteBtn.dataset.groupName = g.name || "";
+          inviteBtn.dataset.joinCode = g.joinCode || "";
+          inviteBtn.dataset.expires = g.joinCodeExpires ? String(g.joinCodeExpires.toMillis()) : "";
+          inviteBtn.textContent = "Invite";
+          actions.appendChild(inviteBtn);
+        }
+        card.appendChild(avatarWrap);
+        card.appendChild(info);
+        card.appendChild(actions);
         groupsList.appendChild(card);
       }
     } catch (err) {

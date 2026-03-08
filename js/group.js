@@ -11,6 +11,12 @@ import {
   deleteDoc,
   serverTimestamp,
   arrayRemove,
+  arrayUnion,
+  query,
+  orderBy,
+  limit,
+  startAfter,
+  addDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { auth, db } from "./firebase-init.js";
 import { getJoinUrl, generateJoinCode, joinCodeExpiresAt, getWeekStart, escapeHtml, escapeAttr, renderAvatar } from "./utils.js";
@@ -19,6 +25,8 @@ import { IMGBB_API_KEY } from "./firebase-config.js";
 const IMGBB_UPLOAD_URL = "https://api.imgbb.com/1/upload";
 const MAX_SIZE_BYTES = 2 * 1024 * 1024;
 const MAX_DIMENSION = 800;
+const ACTIVITY_PAGE_SIZE = 20;
+const USER_COLOR_PALETTE = ["#FC4C02", "#2563EB", "#22C55E", "#9333EA", "#F59E0B"];
 
 let currentUser = null;
 let currentGroupId = null;
@@ -112,6 +120,20 @@ function getRoleLabel(role) {
   return "MEMBER";
 }
 
+/** Consistent color for a user (from userId or fallback string). */
+function getColorForUserId(uidOrName) {
+  if (!uidOrName) return USER_COLOR_PALETTE[0];
+  let hash = 0;
+  const str = String(uidOrName);
+  for (let i = 0; i < str.length; i++) hash = ((hash << 5) - hash) + str.charCodeAt(i);
+  const index = Math.abs(hash) % USER_COLOR_PALETTE.length;
+  return USER_COLOR_PALETTE[index];
+}
+
+let lastActivityDoc = null;
+let hasMoreActivity = false;
+let activityExpanded = true;
+
 function init() {
   const params = new URLSearchParams(window.location.search);
   const groupId = params.get("id");
@@ -134,6 +156,35 @@ function init() {
     }
     currentUser = user;
     await loadGroup();
+  });
+
+  document.querySelectorAll(".group-tab").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const tab = btn.dataset.tab;
+      document.querySelectorAll(".group-tab").forEach((b) => {
+        b.classList.toggle("group-tab--active", b.dataset.tab === tab);
+        b.setAttribute("aria-selected", b.dataset.tab === tab ? "true" : "false");
+      });
+      const panelId = "tab" + tab.charAt(0).toUpperCase() + tab.slice(1);
+      document.querySelectorAll(".group-tab-panel").forEach((panel) => {
+        panel.hidden = panel.id !== panelId;
+      });
+      if (tab === "activity") loadActivity(false);
+    });
+  });
+
+  document.getElementById("activityToggle")?.addEventListener("click", () => {
+    activityExpanded = !activityExpanded;
+    const content = document.getElementById("activityContent");
+    const toggle = document.getElementById("activityToggle");
+    const icon = toggle?.querySelector(".group-activity-toggle-icon");
+    if (content) content.hidden = !activityExpanded;
+    if (toggle) toggle.setAttribute("aria-expanded", String(activityExpanded));
+    if (icon) icon.textContent = activityExpanded ? "▼" : "▶";
+  });
+
+  document.getElementById("activityLoadMore")?.addEventListener("click", () => {
+    loadActivity(true);
   });
 
   document.getElementById("inviteBtn")?.addEventListener("click", () => {
@@ -231,6 +282,8 @@ function init() {
     }
   });
 
+  initActivityLikeDelegation();
+
   document.getElementById("membersList")?.addEventListener("click", async (e) => {
     const removeBtn = e.target.closest("[data-remove-member]");
     if (removeBtn && (isOwner || isAdmin)) {
@@ -309,8 +362,8 @@ async function loadGroup() {
   if (inviteBtn) inviteBtn.style.display = isOwner || isAdmin ? "" : "none";
   const updateGroupPhotoBtn = document.getElementById("updateGroupPhotoBtn");
   if (updateGroupPhotoBtn) updateGroupPhotoBtn.style.display = isOwner || isAdmin ? "" : "none";
-  const groupSettingsSection = document.getElementById("groupSettingsSection");
-  if (groupSettingsSection) groupSettingsSection.style.display = isOwner || isAdmin ? "" : "none";
+  const settingsTab = document.querySelector(".group-tab--settings");
+  if (settingsTab) settingsTab.style.display = isOwner || isAdmin ? "" : "none";
   const deleteGroupBtn = document.getElementById("deleteGroupBtn");
   if (deleteGroupBtn) deleteGroupBtn.style.display = isOwner ? "" : "none";
 
@@ -413,32 +466,137 @@ async function loadGroup() {
     leaderEl.appendChild(li);
   });
 
-  const activitySnap = await getDocs(collection(db, "groups", currentGroupId, "activity"));
-  const activities = [];
-  activitySnap.forEach((d) => activities.push({ id: d.id, ...d.data(), _createdAt: d.data().createdAt }));
-  activities.sort((a, b) => {
-    const ta = a._createdAt && a._createdAt.toMillis ? a._createdAt.toMillis() : 0;
-    const tb = b._createdAt && b._createdAt.toMillis ? b._createdAt.toMillis() : 0;
-    return tb - ta;
-  });
+  lastActivityDoc = null;
+  hasMoreActivity = false;
+  loadActivity(false);
+}
+
+function formatActivityMessage(a) {
+  const msg = a.message || "";
+  if (a.type === "habits") return "completed " + (a.count || 0) + " habit" + ((a.count || 0) !== 1 ? "s" : "") + " 🔥";
+  if (a.type === "streak") return "hit a " + (a.count || 0) + " day streak 🏆";
+  if (a.type === "identity") return "reinforced \"" + (a.identity || "") + "\" ✔";
+  if (a.type === "join") return msg || "joined";
+  return msg;
+}
+
+function renderActivityItem(a, activityEl) {
+  const userName = a.userName || "Someone";
+  const uid = a.createdBy || a.userId || "";
+  const color = getColorForUserId(uid || userName);
+  const likes = Array.isArray(a.likes) ? a.likes : [];
+  const likeCount = likes.length;
+  const isLiked = currentUser && likes.includes(currentUser.uid);
+
+  const li = document.createElement("li");
+  li.className = "group-activity-item";
+  li.dataset.eventId = a.id;
+
+  const nameSpan = document.createElement("span");
+  nameSpan.className = "group-activity-user";
+  nameSpan.style.color = color;
+  nameSpan.textContent = userName + " ";
+
+  const msgSpan = document.createElement("span");
+  msgSpan.className = "group-activity-message";
+  msgSpan.textContent = formatActivityMessage(a);
+
+  const likeWrap = document.createElement("span");
+  likeWrap.className = "group-activity-like-wrap";
+  const likeBtn = document.createElement("button");
+  likeBtn.type = "button";
+  likeBtn.className = "button-ghost button-small group-activity-like-btn";
+  likeBtn.textContent = "👍 Like";
+  likeBtn.dataset.eventId = a.id;
+  likeBtn.dataset.createdBy = uid || "";
+  likeBtn.setAttribute("aria-label", isLiked ? "Unlike" : "Like");
+  if (isLiked) likeBtn.classList.add("group-activity-like-btn--liked");
+  const countSpan = document.createElement("span");
+  countSpan.className = "group-activity-like-count";
+  countSpan.textContent = likeCount > 0 ? " " + likeCount : "";
+  likeWrap.appendChild(likeBtn);
+  likeWrap.appendChild(countSpan);
+
+  li.appendChild(nameSpan);
+  li.appendChild(msgSpan);
+  li.appendChild(likeWrap);
+  activityEl.appendChild(li);
+}
+
+async function loadActivity(append) {
+  if (!currentGroupId || !currentUser) return;
   const activityEl = document.getElementById("activityList");
-  activityEl.innerHTML = "";
-  if (activities.length === 0) {
-    activityEl.innerHTML = "<li class=\"muted-text\">No activity yet.</li>";
-  } else {
-    activities.slice(0, 30).forEach((a) => {
-      const li = document.createElement("li");
-      li.className = "group-activity-item";
-      const userName = a.userName || "Someone";
-      let text = userName + " " + (a.message || "");
-      if (a.type === "habits") text = userName + " completed " + (a.count || 0) + " habit" + ((a.count || 0) !== 1 ? "s" : "") + " 🔥";
-      if (a.type === "streak") text = userName + " hit a " + (a.count || 0) + " day streak 🏆";
-      if (a.type === "identity") text = userName + " reinforced \"" + (a.identity || "") + "\" ✔";
-      if (a.type === "join") text = userName + " " + (a.message || "joined");
-      li.textContent = text;
-      activityEl.appendChild(li);
-    });
+  if (!activityEl) return;
+  if (!append) {
+    activityEl.innerHTML = "<li class=\"muted-text\">Loading…</li>";
+    lastActivityDoc = null;
+    hasMoreActivity = false;
   }
+  try {
+    const activityRef = collection(db, "groups", currentGroupId, "activity");
+    let q;
+    if (append && lastActivityDoc)
+      q = query(activityRef, orderBy("createdAt", "desc"), startAfter(lastActivityDoc), limit(ACTIVITY_PAGE_SIZE));
+    else
+      q = query(activityRef, orderBy("createdAt", "desc"), limit(ACTIVITY_PAGE_SIZE));
+    const snap = await getDocs(q);
+    if (!append) activityEl.innerHTML = "";
+    const activities = [];
+    snap.forEach((d) => activities.push({ id: d.id, ...d.data(), _createdAt: d.data().createdAt }));
+    activities.sort((a, b) => {
+      const ta = a._createdAt && a._createdAt.toMillis ? a._createdAt.toMillis() : 0;
+      const tb = b._createdAt && b._createdAt.toMillis ? b._createdAt.toMillis() : 0;
+      return tb - ta;
+    });
+    activities.forEach((a) => renderActivityItem(a, activityEl));
+    if (snap.docs.length > 0) lastActivityDoc = snap.docs[snap.docs.length - 1];
+    hasMoreActivity = snap.docs.length === ACTIVITY_PAGE_SIZE;
+    const loadMoreBtn = document.getElementById("activityLoadMore");
+    if (loadMoreBtn) loadMoreBtn.style.display = hasMoreActivity ? "" : "none";
+    if (!append && activities.length === 0) activityEl.innerHTML = "<li class=\"muted-text\">No activity yet.</li>";
+  } catch (err) {
+    console.error("[Group] loadActivity error", err);
+    if (!append) activityEl.innerHTML = "<li class=\"muted-text\">Could not load activity.</li>";
+  }
+}
+
+function initActivityLikeDelegation() {
+  document.getElementById("activityList")?.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".group-activity-like-btn");
+    if (!btn || !currentUser || !currentGroupId) return;
+    const eventId = btn.dataset.eventId;
+    const createdBy = btn.dataset.createdBy || "";
+    const eventRef = doc(db, "groups", currentGroupId, "activity", eventId);
+    try {
+      const snap = await getDoc(eventRef);
+      if (!snap.exists()) return;
+      const data = snap.data();
+      const likes = Array.isArray(data.likes) ? [...data.likes] : [];
+      const idx = likes.indexOf(currentUser.uid);
+      if (idx >= 0) {
+        await updateDoc(eventRef, { likes: arrayRemove(currentUser.uid) });
+        likes.splice(idx, 1);
+      } else {
+        await updateDoc(eventRef, { likes: arrayUnion(currentUser.uid) });
+        likes.push(currentUser.uid);
+        if (createdBy && createdBy !== currentUser.uid) {
+          await addDoc(collection(db, "users", createdBy, "notifications"), {
+            type: "activity_like",
+            fromUserId: currentUser.uid,
+            groupId: currentGroupId,
+            eventId,
+            createdAt: serverTimestamp(),
+          });
+        }
+      }
+      const countEl = btn.parentElement?.querySelector(".group-activity-like-count");
+      if (countEl) countEl.textContent = likes.length > 0 ? " " + likes.length : "";
+      btn.classList.toggle("group-activity-like-btn--liked", likes.includes(currentUser.uid));
+    } catch (err) {
+      console.error("[Group] like error", err);
+      showError("Could not update like.");
+    }
+  });
 }
 
 function openInviteModal(code, expires) {

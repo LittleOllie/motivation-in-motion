@@ -1,21 +1,41 @@
 :root {
-  --bg: #f7f7f9;
-  --card: #ffffff;
-  --text: #1f2937;
-  --muted: #6b7280;
-  --primary: #ff7a00;
-  --secondary: #e5e7eb;
-  --shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
-  --radius: 18px;
+  /* Design system — Strava/Fitness inspired */
+  --primary: #FC4C02;
+  --primary-hover: #E04502;
+  --success: #1DB954;
+  --warning: #F59E0B;
+  --bg-main: #F7F7F7;
+  --bg-card: #FFFFFF;
+  --text-primary: #111111;
+  --text-secondary: #666666;
+  --border-color: #E8E8E8;
+  --shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  --radius: 14px;
+  /* Spacing scale */
+  --space-8: 8px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  /* Legacy aliases */
+  --bg: var(--bg-main);
+  --card: var(--bg-card);
+  --text: var(--text-primary);
+  --muted: var(--text-secondary);
+  --secondary: #E8E8E8;
 }
 
 body.dark-mode {
-  --bg: #1f2937;
-  --card: #374151;
-  --text: #f9fafb;
-  --muted: #9ca3af;
-  --secondary: #4b5563;
+  --bg-main: #0F172A;
+  --bg-card: #1E293B;
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --border-color: #334155;
   --shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  --bg: var(--bg-main);
+  --card: var(--bg-card);
+  --text: var(--text-primary);
+  --muted: var(--text-secondary);
+  --secondary: #334155;
 }
 
 * {
@@ -24,9 +44,9 @@ body.dark-mode {
 
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
-  background: var(--bg);
-  color: var(--text);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--bg-main);
+  color: var(--text-primary);
 }
 
 .auth-body {
@@ -44,7 +64,7 @@ body {
 }
 
 .app-shell {
-  padding: 20px 16px 32px;
+  padding: var(--space-24) var(--space-16) var(--space-32);
 }
 
 .top-header {
@@ -65,10 +85,10 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
+  overflow: hidden;
   background: var(--secondary);
   color: var(--text);
   font-weight: 600;
-  overflow: hidden;
 }
 
 .avatar--lg {
@@ -92,11 +112,19 @@ body {
 }
 
 .card {
-  background: var(--card);
-  border-radius: var(--radius);
+  background: var(--bg-card);
+  border-radius: 14px;
   padding: 18px;
   box-shadow: var(--shadow);
-  margin-bottom: 16px;
+  margin-bottom: var(--space-16);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+body.dark-mode .card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 }
 
 .auth-card {
@@ -290,22 +318,32 @@ h1 {
 
 .button-primary,
 .button-secondary {
-  border: none;
-  border-radius: 12px;
-  padding: 14px 16px;
+  border-radius: 8px;
+  padding: 10px 16px;
   font-size: 15px;
-  font-weight: 600;
   cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 }
 
 .button-primary {
   background: var(--primary);
   color: white;
+  border: none;
+  font-weight: 600;
+}
+.button-primary:hover {
+  background: var(--primary-hover);
 }
 
 .button-secondary {
-  background: var(--secondary);
-  color: var(--text);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.button-secondary:hover {
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 a.button-secondary {
@@ -466,6 +504,43 @@ a.button-secondary {
   white-space: nowrap;
   border: 0;
 }
+/* Today's Progress — above habit list */
+.today-progress-header {
+  margin-bottom: var(--space-8);
+}
+
+.today-progress-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+
+.today-progress-count {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+#todayProgressBar {
+  margin-bottom: var(--space-16);
+}
+
+#todayCompleteMessage {
+  margin-top: 0;
+  margin-bottom: var(--space-16);
+  padding: var(--space-12) var(--space-16);
+  background: var(--success);
+  color: #fff;
+  font-weight: 600;
+  text-align: center;
+  border-radius: 8px;
+}
+
+#todayCompleteMessage:not([hidden]) {
+  display: block;
+}
+
 .habit-check {
   display: flex;
   align-items: center;
@@ -524,26 +599,25 @@ a.button-secondary {
   background:#4CAF50;
   transition:width 0.3s ease;
   }
-  .daily-win{
+  .daily-win {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #4CAF50;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    font-weight: 600;
+    z-index: 999;
+  }
 
-    position:fixed;
-    bottom:30px;
-    left:50%;
-    transform:translateX(-50%);
-    
-    background:#4CAF50;
-    color:white;
-    
-    padding:12px 18px;
-    
-    border-radius:10px;
-    
-    box-shadow:0 4px 12px rgba(0,0,0,0.2);
-    
-    font-weight:600;
-    z-index:999;
-    
-    }
+  body.dark-mode .daily-win {
+    background: #059669;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
     
     .progress-bar{
     width:100%;
@@ -675,6 +749,12 @@ a.button-secondary {
   animation: identity-popup-out 0.4s ease forwards;
 }
 
+body.dark-mode .identity-popup {
+  background: #374151;
+  color: #f9fafb;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
 @keyframes identity-popup-in {
   from {
     opacity: 0;
@@ -737,17 +817,121 @@ a.button-secondary {
   margin-bottom: 12px;
 }
 
+/* Dashboard Your Groups section */
+.dashboard-groups-section .card-label {
+  margin-bottom: var(--space-16);
+}
+
+.dashboard-groups-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin-bottom: var(--space-16);
+}
+
+.dashboard-group-card.group-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  padding: var(--space-16);
+  background: var(--bg-card);
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--border-color);
+}
+
+.dashboard-group-card .group-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.dashboard-group-card .group-card-name {
+  display: block;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.link-view-all {
+  display: inline-block;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+  margin-top: var(--space-8);
+}
+
+.link-view-all:hover {
+  text-decoration: underline;
+}
+
+/* Groups page — card layout */
 .groups-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-16);
 }
 
-.groups-list-item {
-  padding: 12px 14px;
-  background: var(--bg);
-  border-radius: 12px;
-  border: 1px solid var(--secondary);
+.groups-list.group-cards .groups-list-item {
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+.groups-list-item.group-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  padding: 18px;
+  background: var(--bg-card);
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--border-color);
+}
+
+.group-card-avatar {
+  flex-shrink: 0;
+}
+
+.group-card-avatar.avatar {
+  width: 48px;
+  height: 48px;
+  font-size: 20px;
+}
+
+.group-card-avatar.avatar--sm {
+  width: 40px;
+  height: 40px;
+  font-size: 16px;
+}
+
+.group-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.group-card-name-line {
+  margin-bottom: 2px;
+}
+
+.group-card-name-line .groups-list-link {
+  font-weight: 600;
+}
+
+.group-card-code {
+  display: block;
+  margin-top: 2px;
+}
+
+.groups-list-item .groups-list-actions {
+  flex-shrink: 0;
+  margin-top: 0;
+}
+
+.groups-list:not(.group-cards) .groups-list-item {
+  padding: var(--space-16);
+  background: var(--bg-main);
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
 }
 
 .groups-list-name {
@@ -826,25 +1010,36 @@ a.button-secondary {
 
 /* Role badges */
 .role-badge {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  margin-left: 6px;
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  padding: 2px 6px;
-  border-radius: 4px;
-  margin-left: 6px;
 }
-.role-badge--owner {
-  background: #d4a017;
-  color: #1a1a1a;
+.badge-owner,
+.badge-admin,
+.badge-member {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
 }
-.role-badge--admin {
-  background: #2563eb;
-  color: #fff;
+.role-badge--owner,
+.badge-owner {
+  background: #F59E0B;
+  color: white;
 }
-.role-badge--member {
-  background: #6b7280;
-  color: #fff;
+.role-badge--admin,
+.badge-admin {
+  background: #3B82F6;
+  color: white;
+}
+.role-badge--member,
+.badge-member {
+  background: #CBD5E1;
+  color: #334155;
 }
 
 .group-header-wrap {
@@ -1006,6 +1201,77 @@ a.button-secondary {
   margin: 12px 0;
 }
 
+/* Group page tabs */
+.group-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: var(--space-16);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.group-tab {
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  margin-bottom: -1px;
+}
+
+.group-tab:hover {
+  color: var(--text-primary);
+}
+
+.group-tab--active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.group-tab-panel {
+  margin-bottom: var(--space-16);
+}
+
+/* Collapsible activity */
+.group-activity-section {
+  padding: 0;
+}
+
+.group-activity-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-16);
+  font-size: 1rem;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.group-activity-toggle-icon {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.group-activity-content {
+  padding: 0 var(--space-16) var(--space-16);
+}
+
+.group-activity-content[hidden] {
+  display: none;
+}
+
+#activityLoadMore {
+  margin-top: var(--space-16);
+}
+
 .group-members-list,
 .group-leaderboard,
 .group-activity-list {
@@ -1019,10 +1285,40 @@ a.button-secondary {
 .group-activity-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 8px 12px;
   padding: 10px 0;
   border-bottom: 1px solid var(--secondary);
   font-size: 14px;
+}
+
+.group-activity-user {
+  font-weight: 600;
+}
+
+.group-activity-message {
+  flex: 1;
+  min-width: 0;
+}
+
+.group-activity-like-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.group-activity-like-btn {
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
+.group-activity-like-btn--liked {
+  color: var(--primary);
+}
+
+.group-activity-like-count {
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
 .group-member-item .avatar,

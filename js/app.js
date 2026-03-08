@@ -3,7 +3,8 @@
  * Protects route: redirect to login if not authenticated; shows Welcome {username}.
  */
 import { signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { auth } from "./firebase-init.js";
+import { doc, getDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { auth, db } from "./firebase-init.js";
 import { renderAvatar } from "./utils.js";
 import { getAuthState, subscribeAuth } from "./auth-state.js";
 
@@ -48,6 +49,52 @@ function initDashboard() {
     }
 
     if (welcomeEl) welcomeEl.textContent = `Welcome ${displayName}`;
+
+    const dashboardGroupsList = document.getElementById("dashboardGroupsList");
+    if (dashboardGroupsList) {
+      try {
+        const profile = await getAuthState().getUserProfile();
+        const groupIds = (profile && profile.groupIds) || [];
+        const firstThree = groupIds.slice(0, 3);
+        if (firstThree.length === 0) {
+          dashboardGroupsList.innerHTML = "<p class=\"muted-text\">You’re not in any groups yet.</p>";
+        } else {
+          dashboardGroupsList.innerHTML = "";
+          for (const gid of firstThree) {
+            const gSnap = await getDoc(doc(db, "groups", gid));
+            if (!gSnap.exists()) continue;
+            const g = gSnap.data();
+            const membersSnap = await getDocs(collection(db, "groups", gid, "members"));
+            const memberCount = membersSnap.size;
+            const card = document.createElement("div");
+            card.className = "group-card dashboard-group-card";
+            const avatarWrap = document.createElement("div");
+            renderAvatar(avatarWrap, g.photoURL || null, g.name || "Group", "sm");
+            avatarWrap.classList.add("group-card-avatar");
+            const info = document.createElement("div");
+            info.className = "group-card-info";
+            const nameEl = document.createElement("span");
+            nameEl.className = "group-card-name";
+            nameEl.textContent = g.name || "Group";
+            const countEl = document.createElement("span");
+            countEl.className = "muted-text small-text";
+            countEl.textContent = memberCount + " member" + (memberCount !== 1 ? "s" : "");
+            info.appendChild(nameEl);
+            info.appendChild(countEl);
+            const openBtn = document.createElement("a");
+            openBtn.href = "group.html?id=" + encodeURIComponent(gid);
+            openBtn.className = "button-primary button-small";
+            openBtn.textContent = "Open Group";
+            card.appendChild(avatarWrap);
+            card.appendChild(info);
+            card.appendChild(openBtn);
+            dashboardGroupsList.appendChild(card);
+          }
+        }
+      } catch (e) {
+        if (dashboardGroupsList) dashboardGroupsList.innerHTML = "<p class=\"muted-text\">Could not load groups.</p>";
+      }
+    }
   });
 
   if (logoutBtn) {

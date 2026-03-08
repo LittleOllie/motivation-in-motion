@@ -6,7 +6,7 @@
   <title>Motivation in Motion</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body class="body-with-bottom-nav">
@@ -35,17 +35,19 @@
       <div id="weeklyChain" class="weekly-chain" aria-label="Last 7 days habit chain"></div>
     </section>
     <section class="card" id="today">
-
       <p class="card-label">Today</p>
-      
-      <div id="todayHabits"><p class="today-habits-empty">Loading…</p></div>
-      
-      <div id="progressText"></div>
-      
-      <div class="progress-bar">
+
+      <div class="today-progress-header">
+        <h3 class="today-progress-title">Today's Progress</h3>
+        <p id="progressText" class="today-progress-count"></p>
+      </div>
+      <div class="progress-bar" id="todayProgressBar" aria-hidden="true">
         <div id="progressFill" class="progress-fill"></div>
       </div>
-      
+
+      <p id="todayCompleteMessage" class="today-complete-message" role="status" aria-live="polite" hidden></p>
+
+      <div id="todayHabits"><p class="today-habits-empty">Loading…</p></div>
       </section>
     <section class="card">
 
@@ -58,11 +60,16 @@
       </a>
     
     </section>
+
+    <section class="card dashboard-groups-section">
+      <h3 class="card-label">Your Groups</h3>
+      <div id="dashboardGroupsList" class="dashboard-groups-list"></div>
+      <a href="groups.html" class="link-view-all">View All Groups</a>
+    </section>
   </main>
 
   <nav class="bottom-nav" aria-label="Main">
-    <a href="index.html" class="bottom-nav-item" data-page="home"><span>🏠</span><span>Home</span></a>
-    <a href="index.html#today" class="bottom-nav-item" data-page="today"><span>✅</span><span>Today</span></a>
+    <a href="index.html" class="bottom-nav-item" data-page="home"><span>🏠</span><span>Dashboard</span></a>
     <a href="habits.html" class="bottom-nav-item" data-page="habits"><span>🧠</span><span>Habits</span></a>
     <a href="groups.html" class="bottom-nav-item" data-page="groups"><span>👥</span><span>Groups</span></a>
     <a href="profile.html" class="bottom-nav-item" data-page="profile"><span>👤</span><span>Profile</span></a>
@@ -70,13 +77,19 @@
   </nav>
   <script>
     (function () {
-      var hash = window.location.hash || '';
-      var page = (hash === '#today') ? 'today' : 'home';
+      var path = window.location.pathname || '';
+      var page = 'home';
+      if (path.indexOf('habits') !== -1) page = 'habits';
+      else if (path.indexOf('groups') !== -1 && path.indexOf('group.html') === -1) page = 'groups';
+      else if (path.indexOf('group.html') !== -1) page = 'groups';
+      else if (path.indexOf('profile') !== -1) page = 'profile';
+      else if (path.indexOf('settings') !== -1) page = 'settings';
       document.querySelectorAll('.bottom-nav-item').forEach(function (a) {
         a.classList.toggle('bottom-nav-item--active', a.getAttribute('data-page') === page);
       });
     })();
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script type="module" src="js/app.js"></script>
   <script type="module" src="js/checkin.js"></script>
 </body>

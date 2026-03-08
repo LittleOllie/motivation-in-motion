@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -99,37 +99,12 @@
 
   <!-- BOTTOM NAV -->
 
-  <nav class="bottom-nav">
-
-    <a href="index.html" class="bottom-nav-item">
-      <span>🏠</span>
-      <span>Home</span>
-    </a>
-
-    <a href="index.html#today" class="bottom-nav-item">
-      <span>✅</span>
-      <span>Today</span>
-    </a>
-
-    <a href="habits.html" class="bottom-nav-item">
-      <span>🧠</span>
-      <span>Habits</span>
-    </a>
-
-    <a href="groups.html" class="bottom-nav-item">
-      <span>👥</span>
-      <span>Groups</span>
-    </a>
-
-    <a href="profile.html" class="bottom-nav-item bottom-nav-item--active">
-      <span>👤</span>
-      <span>Profile</span>
-    </a>
-
-    <a href="settings.html" class="bottom-nav-item">
-      <span>⚙️</span>
-      <span>Settings</span>
-    </a>
+  <nav class="bottom-nav" aria-label="Main">
+    <a href="index.html" class="bottom-nav-item" data-page="home"><span>🏠</span><span>Dashboard</span></a>
+    <a href="habits.html" class="bottom-nav-item" data-page="habits"><span>🧠</span><span>Habits</span></a>
+    <a href="groups.html" class="bottom-nav-item" data-page="groups"><span>👥</span><span>Groups</span></a>
+    <a href="profile.html" class="bottom-nav-item bottom-nav-item--active" data-page="profile"><span>👤</span><span>Profile</span></a>
+    <a href="settings.html" class="bottom-nav-item" data-page="settings"><span>⚙️</span><span>Settings</span></a>
   </nav>
 
   <script type="module" src="js/profile.js"></script>

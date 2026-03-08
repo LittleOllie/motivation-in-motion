@@ -19,6 +19,8 @@ import { subscribeAuth, getAuthState } from "./auth-state.js";
 let currentUser = null;
 let habits = [];
 let completedIds = [];
+/** Whether we have already shown confetti for today (from checkin doc). */
+let celebrationShownToday = false;
 
 function getTodayId() {
   return new Date().toISOString().split("T")[0];
@@ -85,24 +87,39 @@ function getCheckinRef() {
   return doc(db, "users", currentUser.uid, "checkins", getTodayId());
 }
 
-function updateProgressText() {
-    const el = document.getElementById("progressText");
-    if (!el) return;
-  
-    const total = habits.length;
-    const done = completedIds.length;
-    const percent = total ? Math.round((done / total) * 100) : 0;
-  
-    el.textContent = total
-      ? `${done} / ${total} completed • ${percent}%`
-      : "Add habits to track your progress.";
-  
-    const progressFill = document.getElementById("progressFill");
-  
-    if (progressFill) {
-      progressFill.style.width = percent + "%";
-    }
+/** Trigger confetti when all habits completed (once per day). */
+function triggerConfetti() {
+  if (typeof globalThis.confetti === "function") {
+    globalThis.confetti({
+      particleCount: 120,
+      spread: 70,
+      origin: { y: 0.6 },
+    });
   }
+}
+
+function updateProgressText() {
+  const progressTextEl = document.getElementById("progressText");
+  const progressFillEl = document.getElementById("progressFill");
+  const completeMsgEl = document.getElementById("todayCompleteMessage");
+  const total = habits.length;
+  const done = completedIds.length;
+  const percent = total ? Math.round((done / total) * 100) : 0;
+
+  if (progressTextEl) {
+    progressTextEl.textContent = total
+      ? `${done} / ${total} habits completed`
+      : "Add habits to track your progress.";
+  }
+  if (progressFillEl) {
+    progressFillEl.style.width = percent + "%";
+  }
+  if (completeMsgEl) {
+    const allDone = total > 0 && done === total;
+    completeMsgEl.textContent = "All habits completed today 🎉";
+    completeMsgEl.hidden = !allDone;
+  }
+}
 
 /** Load last 7 days and render weekly chain. Filled if checkin exists and habitsCompleted.length > 0. */
 async function loadAndRenderWeeklyChain() {
@@ -197,11 +214,14 @@ function init() {
     console.log("[Checkin] Loading checkin for", getTodayId());
     try {
       const snap = await getDoc(ref);
-      completedIds = (snap.exists() && snap.data().habitsCompleted) || [];
-      console.log("[Checkin] Checkins loaded:", completedIds.length, "completed");
+      const data = snap.exists() ? snap.data() : {};
+      completedIds = Array.isArray(data.habitsCompleted) ? data.habitsCompleted : [];
+      celebrationShownToday = data.celebrationShown === true;
+      console.log("[Checkin] Checkins loaded:", completedIds.length, "completed", "celebrationShown:", celebrationShownToday);
     } catch (err) {
       console.error("[Checkin] loadCheckin error", err);
       completedIds = [];
+      celebrationShownToday = false;
     }
   }
 
@@ -295,6 +315,7 @@ function init() {
               message: "completed habits",
               count: habitsCount,
               createdAt: serverTimestamp(),
+              createdBy: currentUser.uid,
             });
             const statsRef = doc(db, "groups", gid, "memberStats", currentUser.uid);
             const statsSnap = await getDoc(statsRef);
@@ -313,6 +334,7 @@ function init() {
               message: "hit a streak",
               count: streakCount,
               createdAt: serverTimestamp(),
+              createdBy: currentUser.uid,
             });
           }
         })
@@ -337,6 +359,7 @@ function init() {
             message: "reinforced identity",
             identity: String(identity).trim(),
             createdAt: serverTimestamp(),
+            createdBy: currentUser.uid,
           })
         )
       );
@@ -359,11 +382,24 @@ function init() {
     }
     const ref = getCheckinRef();
     if (!ref) return;
+    const totalHabits = habits.length;
+    const completedHabits = completedIds.length;
+    const fullCompletion = totalHabits > 0 && completedHabits === totalHabits;
+    const shouldShowCelebration = fullCompletion && !celebrationShownToday;
     try {
-      await setDoc(ref, { habitsCompleted: completedIds });
+      const payload = { habitsCompleted: completedIds };
+      if (shouldShowCelebration) {
+        payload.celebrationShown = true;
+        celebrationShownToday = true;
+      }
+      await setDoc(ref, payload);
       console.log("[Checkin] Checkbox saved:", id, e.target.checked);
+      if (shouldShowCelebration) {
+        triggerConfetti();
+      }
     } catch (err) {
       console.error("[Checkin] setDoc checkin error", err);
+      if (shouldShowCelebration) celebrationShownToday = false;
     }
     updateProgressText();
     await updateStreakIfNeeded();
