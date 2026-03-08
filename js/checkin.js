@@ -385,21 +385,18 @@ function init() {
     const totalHabits = habits.length;
     const completedHabits = completedIds.length;
     const fullCompletion = totalHabits > 0 && completedHabits === totalHabits;
-    const shouldShowCelebration = fullCompletion && !celebrationShownToday;
     try {
       const payload = { habitsCompleted: completedIds };
-      if (shouldShowCelebration) {
+      if (fullCompletion) {
         payload.celebrationShown = true;
-        celebrationShownToday = true;
       }
       await setDoc(ref, payload);
       console.log("[Checkin] Checkbox saved:", id, e.target.checked);
-      if (shouldShowCelebration) {
+      if (fullCompletion) {
         triggerConfetti();
       }
     } catch (err) {
       console.error("[Checkin] setDoc checkin error", err);
-      if (shouldShowCelebration) celebrationShownToday = false;
     }
     updateProgressText();
     await updateStreakIfNeeded();
