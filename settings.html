@@ -3,15 +3,67 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Settings - Motivation in Motion</title>
+  <title>Settings — Motivation in Motion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
+<body class="body-with-bottom-nav">
+  <script>try{document.body.classList.toggle("dark-mode",localStorage.getItem("motivation-in-motion-dark-mode")==="true");}catch(e){}</script>
   <main class="app-shell">
-    <section class="card">
+    <header class="top-header">
       <h1>Settings</h1>
-      <p>Coming next.</p>
+      <a href="index.html" class="button-secondary">Back</a>
+    </header>
+
+    <div id="settingsError" class="groups-error" role="alert" hidden></div>
+
+    <section class="card">
+      <h2 class="card-label">Account</h2>
+      <p class="muted-text">Update your display name and profile photo on the <a href="profile.html">Profile</a> page.</p>
+      <a href="profile.html" class="button-secondary">Edit Profile</a>
+    </section>
+
+    <section class="card">
+      <h2 class="card-label">Change password</h2>
+      <p class="muted-text small-text">Enter your current password and a new password.</p>
+      <form id="changePasswordForm" class="settings-form">
+        <label for="currentPassword">Current password</label>
+        <input type="password" id="currentPassword" class="input-field" autocomplete="current-password" />
+        <label for="newPassword">New password</label>
+        <input type="password" id="newPassword" class="input-field" autocomplete="new-password" minlength="6" />
+        <button type="submit" id="changePasswordBtn" class="button-primary">Change password</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2 class="card-label">Appearance</h2>
+      <div class="settings-row">
+        <span>Dark mode</span>
+        <label class="toggle-wrap">
+          <input type="checkbox" id="darkModeToggle" class="toggle-input" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="card-label">Danger zone</h2>
+      <p class="muted-text small-text">Permanently delete your account and all data. This cannot be undone.</p>
+      <button type="button" id="deleteAccountBtn" class="button-ghost button-danger">Delete account</button>
     </section>
   </main>
+
+  <nav class="bottom-nav" aria-label="Main">
+    <a href="index.html" class="bottom-nav-item" data-page="home"><span>🏠</span><span>Home</span></a>
+    <a href="index.html#today" class="bottom-nav-item" data-page="today"><span>✅</span><span>Today</span></a>
+    <a href="habits.html" class="bottom-nav-item" data-page="habits"><span>🧠</span><span>Habits</span></a>
+    <a href="groups.html" class="bottom-nav-item" data-page="groups"><span>👥</span><span>Groups</span></a>
+    <a href="profile.html" class="bottom-nav-item" data-page="profile"><span>👤</span><span>Profile</span></a>
+    <a href="settings.html" class="bottom-nav-item bottom-nav-item--active" data-page="settings"><span>⚙️</span><span>Settings</span></a>
+  </nav>
+
+  <script type="module" src="js/settings.js"></script>
 </body>
 </html>

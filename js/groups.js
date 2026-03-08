@@ -185,6 +185,9 @@ function init() {
         if (!gSnap.exists()) continue;
         const g = gSnap.data();
         const isOwner = g.owner === currentUser.uid;
+        const memberSnap = await getDoc(doc(db, "groups", gid, "members", currentUser.uid));
+        const role = memberSnap.exists() ? (memberSnap.data().role || (isOwner ? "owner" : "member")) : "member";
+        const roleBadge = isOwner ? ' <span class="role-badge role-badge--owner">OWNER</span>' : (role === "admin" ? ' <span class="role-badge role-badge--admin">ADMIN</span>' : "");
         const card = document.createElement("div");
         card.className = "groups-list-item";
         const expiresText = g.joinCodeExpires && g.joinCodeExpires.toMillis
@@ -192,11 +195,11 @@ function init() {
           : "";
         card.innerHTML =
           `<a href="group.html?id=${escapeAttr(gid)}" class="groups-list-link">${escapeHtml(g.name || "Group")}</a>` +
-          (isOwner ? ` <span class="groups-list-badge">Owner</span>` : "") +
+          roleBadge +
           `<br><span class="muted-text small-text">Code: ${escapeHtml(g.joinCode || "—")} ${expiresText ? "· Expires " + expiresText : ""}</span>` +
           `<div class="groups-list-actions">` +
           `<a href="group.html?id=${escapeAttr(gid)}" class="button-secondary button-small">Open</a>` +
-          (isOwner ? ` <button type="button" class="button-secondary button-small groups-list-action" data-group-id="${escapeAttr(gid)}" data-group-name="${escapeAttr(g.name || "")}" data-join-code="${escapeAttr(g.joinCode || "")}" data-expires="${g.joinCodeExpires ? g.joinCodeExpires.toMillis() : ""}">Invite</button>` : "") +
+          ((isOwner || role === "admin") ? ` <button type="button" class="button-secondary button-small groups-list-action" data-group-id="${escapeAttr(gid)}" data-group-name="${escapeAttr(g.name || "")}" data-join-code="${escapeAttr(g.joinCode || "")}" data-expires="${g.joinCodeExpires ? g.joinCodeExpires.toMillis() : ""}">Invite</button>` : "") +
           `</div>`;
         groupsList.appendChild(card);
       }

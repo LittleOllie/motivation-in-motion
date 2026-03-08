@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body class="body-with-bottom-nav">
+  <script>try{document.body.classList.toggle("dark-mode",localStorage.getItem("motivation-in-motion-dark-mode")==="true");}catch(e){}</script>
   <main class="app-shell">
     <header class="top-header">
       <h1>Your Habits</h1>
@@ -46,6 +47,7 @@
     <a href="habits.html" class="bottom-nav-item bottom-nav-item--active" data-page="habits"><span>🧠</span><span>Habits</span></a>
     <a href="groups.html" class="bottom-nav-item" data-page="groups"><span>👥</span><span>Groups</span></a>
     <a href="profile.html" class="bottom-nav-item" data-page="profile"><span>👤</span><span>Profile</span></a>
+    <a href="settings.html" class="bottom-nav-item" data-page="settings"><span>⚙️</span><span>Settings</span></a>
   </nav>
   <script type="module" src="js/habits.js"></script>
 </body>

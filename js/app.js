@@ -9,7 +9,6 @@ import { getAuthState, subscribeAuth } from "./auth-state.js";
 
 function initDashboard() {
   const welcomeEl = document.getElementById("welcomeMessage");
-  const userEmailEl = document.getElementById("userEmail");
   const logoutBtn = document.getElementById("logoutBtn");
   const streakEl = document.getElementById("streakCount");
   const shieldEl = document.getElementById("shieldCount");
@@ -26,7 +25,6 @@ function initDashboard() {
     }
 
     let displayName = user.displayName || user.email || "User";
-    if (userEmailEl) userEmailEl.textContent = user.email || "";
 
     try {
       const profile = await getAuthState().getUserProfile();

@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body class="body-with-bottom-nav">
+  <script>try{document.body.classList.toggle("dark-mode",localStorage.getItem("motivation-in-motion-dark-mode")==="true");}catch(e){}</script>
   <main class="app-shell">
     <header class="top-header">
       <h1 id="groupTitle">Group</h1>
@@ -19,13 +20,30 @@
     <div id="groupError" class="groups-error" role="alert" aria-live="polite" hidden></div>
 
     <section class="card">
-      <p class="card-label">Group</p>
-      <h2 id="groupName" class="group-name"></h2>
-      <p class="muted-text" id="memberCount"></p>
-      <div class="group-actions">
-        <button type="button" id="inviteBtn" class="button-primary">Invite Members</button>
+      <div class="group-header-wrap">
+        <div id="groupAvatar" class="avatar avatar--lg"></div>
+        <div class="group-header-text">
+          <p class="card-label">Group</p>
+          <h2 id="groupName" class="group-name"></h2>
+          <p class="muted-text" id="memberCount"></p>
+          <div class="group-actions">
+            <button type="button" id="inviteBtn" class="button-primary">Invite Members</button>
+            <button type="button" id="updateGroupPhotoBtn" class="button-secondary" style="display:none;">Update Group Photo</button>
+          </div>
+          <p class="group-code-line">Join code: <strong id="groupJoinCode"></strong></p>
+        </div>
       </div>
-      <p class="group-code-line">Join code: <strong id="groupJoinCode"></strong></p>
+      <input type="file" id="groupPhotoInput" accept="image/*" class="visually-hidden" aria-label="Group photo" />
+    </section>
+
+    <section class="card" id="groupSettingsSection" style="display:none;">
+      <h3 class="card-label">Group Settings</h3>
+      <div class="group-settings-actions">
+        <button type="button" id="updateGroupNameBtn" class="button-secondary">Update group name</button>
+        <button type="button" id="updateGroupPhotoSettingBtn" class="button-secondary">Update group photo</button>
+        <button type="button" id="regenerateCodeSettingBtn" class="button-secondary">Generate new join code</button>
+        <button type="button" id="deleteGroupBtn" class="button-ghost button-danger" style="display:none;">Delete group</button>
+      </div>
     </section>
 
     <section class="card">
@@ -62,6 +80,7 @@
     <a href="habits.html" class="bottom-nav-item" data-page="habits"><span>🧠</span><span>Habits</span></a>
     <a href="groups.html" class="bottom-nav-item bottom-nav-item--active" data-page="groups"><span>👥</span><span>Groups</span></a>
     <a href="profile.html" class="bottom-nav-item" data-page="profile"><span>👤</span><span>Profile</span></a>
+    <a href="settings.html" class="bottom-nav-item" data-page="settings"><span>⚙️</span><span>Settings</span></a>
   </nav>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
